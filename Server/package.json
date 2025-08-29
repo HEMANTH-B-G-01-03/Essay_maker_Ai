@@ -1,1 +1,1 @@
-{"type":"module","scripts":{"dev":"nodemon --watch src --ext js --exec node src/index.js","start":"node src/index.js","test":"jest --runInBand"},"dependencies":{"express":"^5.1.0"}}
+{"type":"module","scripts":{"dev":"nodemon --watch src --ext js --exec node src/index.js","start":"node src/index.js","test":"jest --runInBand"},"dependencies":{"cors":"^2.8.5","dotenv":"^17.2.1","express":"^5.1.0","morgan":"^1.10.1","openai":"^5.16.0","zod":"^3.25.76"},"devDependencies":{"nodemon":"^3.1.10"}}
