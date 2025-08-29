@@ -1,40 +1,42 @@
-
+// Server/src/routes/essay.js
 import { Router } from "express";
-import OpenAI from "openai";
+import { z } from "zod";
+import { generateEssay, reviseEssay } from "../openai.js";
 
-const client = new OpenAI({
-  apiKey: process.env.PERPLEXITY_API_KEY,
-  baseURL: "https://api.perplexity.ai",
+const router = Router();
+
+const genSchema = z.object({
+  topic: z.string().min(2),
+  tone: z.string().optional(),
 });
 
-export async function generateEssay({ topic, tone }) {
-  const style = tone || "a clear, informative";
-  const prompt = `Write a multi-paragraph essay on "${topic}" in ${style} style. Include an introduction, 2-3 body paragraphs, and a concise conclusion.`;
+router.post("/", async (req, res) => {
+  const parsed = genSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+  try {
+    const essay = await generateEssay(parsed.data);
+    res.json({ essay });
+  } catch (err) {
+    console.error("Generate error:", err);
+    res.status(500).json({ error: "Failed to generate essay" });
+  }
+});
 
-  const resp = await client.chat.completions.create({
-    model: "sonar-large-online", // ✅ Perplexity model
-    messages: [{ role: "user", content: prompt }],
-  });
+const revSchema = z.object({
+  original: z.string().min(1),
+  note: z.string().min(2),
+});
 
-  return resp.choices[0]?.message?.content?.trim() || "";
-}
+router.post("/revise", async (req, res) => {
+  const parsed = revSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+  try {
+    const essay = await reviseEssay(parsed.data);
+    res.json({ essay });
+  } catch (err) {
+    console.error("Revise error:", err);
+    res.status(500).json({ error: "Failed to revise essay" });
+  }
+});
 
-export async function reviseEssay({ original, note }) {
-  const prompt = `You are revising the following essay based on the note.
-
-Essay:
-${original}
-
-Note from user: ${note}
-
-Return only the revised essay.`;
-
-  const resp = await client.chat.completions.create({
-    model: "sonar-large-online", // ✅ same model as above
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  return resp.choices[0]?.message?.content?.trim() || "";
-}
-
-export default Router;
+export default router; // ✅ default export so your index.js import works
