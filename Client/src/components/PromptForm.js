@@ -30,7 +30,9 @@ export default function PromptForm() {
       const data = await res.json();
       setEssay(data.essay || "");
       setHistory([{ version: 1, text: data.essay || "" }]);
-    } catch {
+    } catch(err) {
+      console.error("Error generating essay:", err); 
+
       setError("Failed to generate essay. Please try again.");
     } finally {
       setLoading(false);
